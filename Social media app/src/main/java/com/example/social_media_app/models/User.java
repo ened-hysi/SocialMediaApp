@@ -1,6 +1,7 @@
 package com.example.social_media_app.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
@@ -15,9 +16,9 @@ public class User {
 
     private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     @Column(name = "profile_picture")
-    @JsonProperty("profile_picture")
     private String profilePicture;
     private String bio;
 
@@ -31,7 +32,16 @@ public class User {
         this.email = email;
     }
 
-    private Roles role;
+
+    public String getAuthority() {
+        return authority;
+    }
+
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    private String authority;
 
     public List<Post> getPosts() {
         return posts;
@@ -41,6 +51,7 @@ public class User {
         this.posts = posts;
     }
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Post> posts;
 
@@ -50,13 +61,6 @@ public class User {
 //    @OneToMany(mappedBy = "user")
 //    private List<Like> likes;
 
-    public Roles getRole() {
-        return role;
-    }
-
-    public void setRole(Roles role) {
-        this.role = role;
-    }
 
     public Long getId() {
         return id;

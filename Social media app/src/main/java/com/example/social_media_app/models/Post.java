@@ -1,5 +1,7 @@
 package com.example.social_media_app.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,6 +15,7 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String content;
 
     @UpdateTimestamp
@@ -24,7 +27,8 @@ public class Post {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"posts","password"})
     private User user;
 
 //    @OneToMany(mappedBy = "post")
@@ -74,11 +78,4 @@ public class Post {
         this.createdAt = createdAt;
     }
 
-    public User getUserId() {
-        return user;
-    }
-
-    public void setUserId(User user) {
-        this.user = user;
-    }
 }

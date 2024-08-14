@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface IPostService {
 
-    Post createPost(Post post);
+    Post createPost(Post post, User user);
 
     Optional<Post> findById(Long id);
 

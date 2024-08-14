@@ -1,6 +1,7 @@
 package com.example.social_media_app.security;
 
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -53,6 +56,11 @@ public class SpringSecurity {
                 .passwordEncoder(passwordEncoder());
     }
 
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+
 
     @Bean
 //    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -61,13 +69,12 @@ public class SpringSecurity {
 //                .logout(AbstractHttpConfigurer::disable)
 //                .authorizeHttpRequests(auth->
 //                        auth.requestMatchers("/login",
-//                                        "/logout",
 //                                        "/users/signup").permitAll()
-////                                .requestMatchers(HttpMethod.GET).hasAnyRole("ADMIN")
-////                                .requestMatchers(HttpMethod.POST).hasAnyRole("ADMIN")
-////                                .requestMatchers(HttpMethod.PUT).hasAnyRole("ADMIN")
-////                                .requestMatchers(HttpMethod.PATCH).hasAnyRole("ADMIN")
-////                                .requestMatchers(HttpMethod.DELETE).hasAnyRole("ADMIN")
+//                                .requestMatchers(HttpMethod.GET).hasAnyRole("USER","ADMIN")
+//                                .requestMatchers(HttpMethod.POST).hasAnyRole("ADMIN")
+//                                .requestMatchers(HttpMethod.PUT).hasAnyRole("ADMIN")
+//                                .requestMatchers(HttpMethod.PATCH).hasAnyRole("ADMIN")
+//                                .requestMatchers(HttpMethod.DELETE).hasAnyRole("ADMIN")
 //                               .anyRequest().authenticated())
 //                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 //                .httpBasic(Customizer.withDefaults())
@@ -93,18 +100,78 @@ public class SpringSecurity {
 
 
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                // .cors()
-                //.and()
-                .authorizeRequests(authorize ->
-                                authorize
-                                        .requestMatchers("/users/signup").permitAll()
-                                        .anyRequest().authenticated())
-                .formLogin(Customizer.withDefaults());
 
-        return http.build();
+//        http.csrf(AbstractHttpConfigurer::disable)
+//                // .cors()
+//                //.and()
+//                .authorizeRequests(authorize ->
+//                                authorize
+//                                        .requestMatchers("users/signup","/logout","/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
+//                                       //.requestMatchers(HttpMethod.GET).hasAnyAuthority("USER","ADMIN")
+//                                        .requestMatchers(HttpMethod.PATCH, "/users/{id}", "/posts/updatePost/{id}", "/comments/{id}").hasAnyAuthority("USER", "ADMIN")
+//                                        .requestMatchers(HttpMethod.DELETE, "/users/{id}", "/posts/deletePost/{id}", "/comments/{id}", "/likes/{id}").hasAnyAuthority("USER", "ADMIN")
+////                                        .requestMatchers("/users/admin", "/users/admin/**",
+////                                                "/admin/updateUser/**","/admin/deleteUser/**","admin/deletePost/**","/posts/allPosts"
+////                                        ,"/posts/findPost/**","/posts/user/**","/comments/**","/comments/post/**")
+////                                        .hasAuthority("ADMIN")
+////                                        .requestMatchers("/posts","/posts/updatePost/**","/posts/deletePost/**","/posts/my-posts","/comments"
+////                                        ,"/comments/updateComment/**","/comments/deleteComment/**","/likes/**","/likes/remove/**","/likes/post/**")
+////                                        .hasAnyAuthority("USER","ADMIN")
+//                                        .anyRequest().authenticated())
+//                .formLogin(withDefaults());
+//
+//
+        http.csrf(AbstractHttpConfigurer::disable)
+
+                .authorizeHttpRequests(authorize ->
+                        authorize
+                                // Public endpoints
+                                .requestMatchers(HttpMethod.POST, "/users/signup").permitAll()
+                                .requestMatchers("/logout").permitAll()
+                                .requestMatchers("/favicon.ico", "/css/*", "/js/", "/images/*").permitAll()
+
+                                // User and Admin endpoints
+                                .requestMatchers(HttpMethod.GET, "/users/{id}","/posts", "/posts/{id}", "/posts/user/{userId}","/posts/my-posts","/","/users/search/{username}","/users/{id}/profile").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/comments/{id}", "/comments/post/{postId}").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/likes/post/{postId}","/likes/count/{postId}","/likes//users/{postId}").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/follow/followers/{userId}","/follow/following/{userId}","/follow/check/{userId}").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/posts", "/comments", "/likes/{postId}").hasAnyAuthority("USER", "ADMIN")
+
+
+                                // Admin-only endpoints
+                                .requestMatchers(HttpMethod.GET, "/users").hasAuthority("ADMIN")
+
+                                // Endpoints that require custom authorization in the controller
+                                .requestMatchers(HttpMethod.PATCH, "/users/{id}", "/posts/{id}", "/comments/{id}").hasAnyAuthority("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/users/{id}", "/posts/{id}", "/comments/{id}", "/likes/{id}","/follow/{userId}").hasAnyAuthority("USER", "ADMIN")
+
+                                .anyRequest().authenticated())
+                .formLogin(withDefaults());
+
+       return http.build();
     }
 
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//        http.csrf(AbstractHttpConfigurer::disable)
+//                // .cors()
+//                //.and()
+//                .authorizeRequests(authorize ->
+//                        authorize.requestMatchers("/login",
+//                                       "/users/signup").permitAll()
+//                                .requestMatchers(HttpMethod.GET).hasAnyRole("USER","ADMIN")
+//                               .requestMatchers(HttpMethod.POST).hasAnyRole("ADMIN")
+//                               .requestMatchers(HttpMethod.PUT).hasAnyRole("ADMIN")
+//                               .requestMatchers(HttpMethod.PATCH).hasAnyRole("ADMIN")
+//                                .requestMatchers(HttpMethod.DELETE).hasAnyRole("ADMIN")
+//                               .anyRequest().authenticated())
+//                .formLogin(withDefaults());
+//
+//
+//        return http.build();
+//    }
 
 
 }
+
+
+

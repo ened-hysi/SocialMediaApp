@@ -18,10 +18,10 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String roleName = user.getRole().name();
-        return Collections.singleton(new SimpleGrantedAuthority(roleName));
+        return List.of(() -> user.getAuthority());
     }
 
     @Override
@@ -34,7 +34,7 @@ public class CustomUserDetails implements UserDetails {
         return this.user.getUsername();
     }
 
-    public String getUserRole(){
-        return this.user.getRole().name();
+    public Long getId() {
+        return user.getId();
     }
 }
